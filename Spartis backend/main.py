@@ -19,12 +19,7 @@ from viewer import view_stl
 app = FastAPI(title="NIfTI to Mesh Pipeline API")
 
 # --- Azure Blob Storage Configuration ---
-# WARNING: For production, use environment variables or Azure Key Vault, not hardcoded strings.
-BLOB_CONNECTION_STRING: str = (
-    "DefaultEndpointsProtocol=https;AccountName=spartis9488473038;"
-    "AccountKey=WxiLwTEm+WEut0AIFRTLiWcXgHhDixXtYtF5gbbGIKLMWANt5wHOVwg/"
-    "QzRgz2uG1CHcazDil58i+ASttN+yaA==;EndpointSuffix=core.windows.net"
-)
+BLOB_CONNECTION_STRING = os.environ.get("BLOB_CONNECTION_STRING")
 CONTAINER_NAME: str = "azureml-blobstore-d58bdc01-dd56-4b93-815a-7c70b6e606d6"
 UPLOAD_FOLDER_NAME: str = "app_uploaded_data"
 
@@ -133,7 +128,3 @@ async def get_output_file(filename: str):
     if not os.path.isfile(file_path):
         raise HTTPException(status_code=404, detail="File not found.")
     return FileResponse(file_path)
-
-# Serve the frontend application
-# This must be mounted AFTER your API routes
-app.mount("/", StaticFiles(directory="static", html=True), name="static")

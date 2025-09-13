@@ -4,9 +4,9 @@ python-multipart
 azure-storage-blob[aio]
 redis
 
-# Add dependencies from your 'pipeline.py' and 'viewer.py' here
-# For example:
-# numpy
-# SimpleITK
-# scikit-image
-# pyvista
+# Dependencies from pipeline.py (You MUST add all of them)
+numpy
+SimpleITK
+scikit-image
+# pyvista # CRITICAL: This library is not compatible with Vercel's headless serverless environment and will cause runtime errors.
+# You must refactor your pipeline to use a headless-compatible library for mesh generation.
