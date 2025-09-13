@@ -44,10 +44,7 @@ function STLViewer({ url }: { url: string }) {
   )
 }
 
-function ThreeJSSTLViewer({ filename }: { filename: string }) {
-  // Use a relative path. Vercel will route this to the Python backend.
-  const url = `/outputs/${filename}`
-
+function ThreeJSSTLViewer({ url }: { url: string }) {
   return (
     <Canvas
       shadows
@@ -77,8 +74,8 @@ export default function ViewerPage() {
 
   const navigate = useNavigate()
   const location = useLocation()
-  const searchParams = new URLSearchParams(location.search);
-  const filename = searchParams.get('file');
+  const searchParams = new URLSearchParams(location.search)
+  const modelUrl = searchParams.get('url')
 
   const patientInfo = {
     name: "John Smith",
@@ -95,11 +92,11 @@ export default function ViewerPage() {
     setContrast(Number(e.target.value))
 
   const handleShare = async () => {
-    if (!filename) return;
+    if (!modelUrl) return;
 
     const shareData = {
-      title: 'Spartis 3D Medical Scan',
-      text: `Check out this 3D model: ${filename}`,
+      title: 'Spartis 3D Medical Scan', // You might want to pass the original filename for a better title
+      text: `Check out this 3D model!`,
       url: window.location.href,
     };
 
@@ -155,7 +152,7 @@ export default function ViewerPage() {
           {/* CT Viewer */}
           <div className="bg-black rounded-xl overflow-hidden shadow-xl border border-slate-700 h-[calc(100vh-220px)]">
             <div className="relative h-full" style={{ filter: `brightness(${brightness}%) contrast(${contrast}%)` }}>
-              {filename ? <ThreeJSSTLViewer filename={filename} /> : <div className="text-white p-4">No file specified.</div>}
+              {modelUrl ? <ThreeJSSTLViewer url={modelUrl} /> : <div className="text-white p-4">No model URL specified.</div>}
             </div>
           </div>
 

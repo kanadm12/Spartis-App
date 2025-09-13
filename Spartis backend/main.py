@@ -27,23 +27,30 @@ UPLOAD_FOLDER_NAME: str = "app_uploaded_data"
 # Some systems may not have this mimetype registered by default.
 mimetypes.add_type("model/stl", ".stl")
 
-# Vercel has a read-only filesystem, except for the /tmp directory.
-TMP_DIR = "/tmp"
-UPLOAD_DIR = os.path.join(TMP_DIR, "uploads")
-OUTPUT_DIR = os.path.join(TMP_DIR, "outputs")
+# Define local directories for temporary file storage.
+# On Azure App Service, the local filesystem is writable but not ideal for persistent storage.
+BASE_DIR = Path(__file__).resolve().parent
+UPLOAD_DIR = BASE_DIR / "uploads"
+OUTPUT_DIR = BASE_DIR / "outputs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Allow frontend requests (for development)
+# --- CORS Configuration ---
+# Get allowed origins from environment variables. Default to allowing all for development.
+# For production on Azure, set this to your specific frontend URL, e.g., "https://my-frontend.azurewebsites.net"
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+
+# Allow frontend requests
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Limit this in production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-async def upload_to_blob(file_path: str, original_filename: str):
+
+async def upload_input_to_blob(file_path: str, original_filename: str):
     """
     Uploads a file to Azure Blob Storage.
     """
@@ -68,6 +75,33 @@ async def upload_to_blob(file_path: str, original_filename: str):
     except Exception as e:
         print(f"❌ Failed to upload to Azure Blob Storage: {e}")
 
+async def upload_output_to_blob(file_path: str) -> str:
+    """
+    Uploads a generated output file to Azure Blob Storage and returns its public URL.
+    """
+    if not BLOB_CONNECTION_STRING:
+        print("⚠️ BLOB_CONNECTION_STRING is not set. Skipping blob upload for output.")
+        return ""
+
+    blob_name = f"app_generated_outputs/{os.path.basename(file_path)}"
+    
+    try:
+        blob_service_client = BlobServiceClient.from_connection_string(BLOB_CONNECTION_STRING)
+        async with blob_service_client:
+            container_client = blob_service_client.get_container_client(CONTAINER_NAME)
+            
+            print(f"Uploading output to Azure Blob Storage as blob:\n\t{blob_name}")
+            
+            with open(file_path, "rb") as data:
+                blob_client = await container_client.upload_blob(name=blob_name, data=data, overwrite=True)
+                
+            print(f"✅ Output upload successful for {blob_name}")
+            return blob_client.url
+
+    except Exception as e:
+        print(f"❌ Failed to upload output to Azure Blob Storage: {e}")
+        return ""
+
 @app.post("/api/process-nifti/")
 async def process_nifti_file(file: UploadFile = File(...), background_tasks: BackgroundTasks = BackgroundTasks(), request: Request = None):
     if not file.filename.endswith(".nii.gz"):
@@ -84,7 +118,7 @@ async def process_nifti_file(file: UploadFile = File(...), background_tasks: Bac
 
     # --- Upload to Azure Blob Storage ---
     # We add this as a background task so it doesn't block the initial response to the user.
-    background_tasks.add_task(upload_to_blob, input_path, file.filename)
+    background_tasks.add_task(upload_input_to_blob, input_path, file.filename)
 
     background_tasks.add_task(run_pipeline_async, input_path, file_id)
 
@@ -105,14 +139,20 @@ async def run_pipeline_async(input_path: str, file_id: str) -> str:
             # a threshold of 250 is too high. This often happens with segmentation masks where the target value is 1.
             lambda: full_pipeline(input_path, OUTPUT_DIR, threshold=1, file_id=file_id, progress_callback=on_progress)
         )
-        print(f"stl_path: {stl_path}")
+        print(f"✅ Pipeline generated STL file: {stl_path}")
+
+        # Upload the generated STL to blob storage and get the URL
+        await set_progress(file_id, {"step": "Uploading result", "progress": 99})
+        stl_url = await upload_output_to_blob(stl_path)
+
         await set_progress(file_id, {
             "step": "Completed",
             "progress": 100,
-            "filename": os.path.basename(stl_path)
+            "url": stl_url,
+            "filename": os.path.basename(stl_path) # Keep for reference if needed
         })
-        return stl_path
     except Exception as e:
+        # Ensure to await the async set_progress call
         await set_progress(file_id, {"step": "Error", "progress": 0})
         print(f"❌ Pipeline failed for {file_id}: {e}")
 
@@ -122,9 +162,11 @@ async def get_progress(file_id: str):
     progress = await get_progress_from_kv(file_id)
     return progress or {"step": "Pending", "progress": 0}
 
+# This endpoint is no longer the primary way to get files but can be kept for debugging.
+# The frontend will now use the direct blob URL.
 @app.get("/api/outputs/{filename}")
 async def get_output_file(filename: str):
     file_path = os.path.join(OUTPUT_DIR, filename)
     if not os.path.isfile(file_path):
         raise HTTPException(status_code=404, detail="File not found.")
-    return FileResponse(file_path)
+    return FileResponse(file_path, media_type="model/stl")

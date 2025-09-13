@@ -11,5 +11,3 @@ scikit-image
 vtk
 pydicom
 nibabel
-# pyvista # CRITICAL: This library is not compatible with Vercel's headless serverless environment.
-# You must refactor your pipeline to use a headless-compatible library for mesh generation.

@@ -87,8 +87,9 @@ export default function MedicalInterface() {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Use relative paths for API calls. Vercel will route them to the backend.
-      const apiUrl = "/api";
+      // Use an environment variable for the API URL.
+      // Fallback to a relative path for easy local development (proxied by dev server).
+      const apiUrl = process.env.REACT_APP_API_URL || "/api";
 
       const response = await axios.post(`${apiUrl}/process-nifti`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -102,7 +103,7 @@ export default function MedicalInterface() {
       const poll = async () => {
         try {
           const res = await axios.get(`${apiUrl}/progress/${file_id}`);
-          const { progress, step, filename } = res.data;
+          const { progress, step, url, filename } = res.data;
 
           // Check if the backend is reporting a processing error in the 'step' message
           if (typeof step === 'string' && (step.toLowerCase().includes('error') || step.toLowerCase().includes('failed'))) {
@@ -112,17 +113,17 @@ export default function MedicalInterface() {
             return; // Stop polling on error
           }
 
-          console.log("Progress update:", progress, step, filename);
+          console.log("Progress update:", progress, step, url);
           setProgress(progress);
           setProgressText(step);
 
-          if (progress >= 100 && filename) {
+          if (progress >= 100 && url) {
             setIsUploading(false); // Stop showing the progress bar
-            navigate(`/viewer?file=${encodeURIComponent(filename)}`); // Navigate with a shareable URL
+            navigate(`/viewer?url=${encodeURIComponent(url)}`); // Navigate with the direct model URL
             return; // Stop polling on success
           }
 
-          if (progress >= 100 && !filename) {
+          if (progress >= 100 && !url) {
             console.warn("Processing complete but STL filename missing. Retrying...");
           }
 
