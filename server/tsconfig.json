@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "NodeNext", // Modern Node.js supports ES Modules
-    "outDir": "./build",   // Output directory for compiled server code
+    "module": "CommonJS", // Use CommonJS for Vercel Serverless Functions
+    "outDir": "../api",   // Output to root 'api' directory for Vercel
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true
