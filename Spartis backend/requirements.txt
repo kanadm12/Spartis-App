@@ -1,7 +1,15 @@
 fastapi
 uvicorn
+python-multipart
 azure-storage-blob[aio]
-# Add any other dependencies from your pipeline.py, kv_helpers.py, etc.
-# For example:
-# numpy
-# SimpleITK
+redis
+
+# Dependencies from your processing pipeline
+numpy
+SimpleITK
+scikit-image
+vtk
+pydicom
+nibabel
+# pyvista # CRITICAL: This library is not compatible with Vercel's headless serverless environment.
+# You must refactor your pipeline to use a headless-compatible library for mesh generation.

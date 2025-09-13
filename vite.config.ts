@@ -6,6 +6,10 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // Output to the directory Vercel expects
+    outDir: 'dist-electron/react',
+  },
   resolve: {
     // This alias must match the one in your tsconfig.json
     alias: {

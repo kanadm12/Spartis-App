@@ -1,9 +1,7 @@
 "use client";
 
-console.log("🧠 MedicalInterface component mounted");
-
 import { useNavigate } from "react-router-dom";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { Upload, FileText, Download, X } from "lucide-react";
 import { Header } from "./header";
@@ -25,7 +23,10 @@ export default function MedicalInterface() {
   const [progress, setProgress] = useState(0);
   const [progressText, setProgressText] = useState("");
   const navigate = useNavigate();
-  const isNavigatingRef = useRef(false);
+
+  useEffect(() => {
+    console.log("🧠 MedicalInterface component mounted");
+  }, []);
 
   const patientInfo: PatientInfo = {
     name: "John Smith",
@@ -81,9 +82,6 @@ export default function MedicalInterface() {
     setIsUploading(true);
     setProgress(0);
     setProgressText("Starting...");
-
-    // Reset navigation flag for a new upload
-    isNavigatingRef.current = false;
 
     try {
       const formData = new FormData();
