@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+azure-storage-blob[aio]
+# Add any other dependencies from your pipeline.py, kv_helpers.py, etc.
+# For example:
+# numpy
+# SimpleITK

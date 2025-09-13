@@ -8,9 +8,8 @@
     "dev:react": "vite",
     "dev:server": "nodemon --watch \"server/**/*.ts\" --exec \"node --loader ts-node/esm server/server.ts\"",
     "start": "node server/build/server.js",
-    "build": "npm run build:react && npm run build:server",
+    "build": "npm run build:react",
     "build:react": "vite build",
-    "build:server": "tsc -p server/tsconfig.json",
     "lint": "eslint .",
     "preview": "vite preview"
   },
