@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+azure-storage-blob[aio]
+redis
+
+# Add dependencies from your 'pipeline.py' and 'viewer.py' here
+# For example:
+# numpy
+# SimpleITK
+# scikit-image
+# pyvista

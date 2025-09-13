@@ -1,0 +1,28 @@
+{
+  "appId": "com.soham.spartis",
+  "productName": "Spartis Application",
+  "files": [
+    "dist-electron/**/*",
+    "dist-react/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "src/assets",
+      "to": "assets"
+    }
+  ],
+  "directories": {
+    "buildResources": "assets"
+  },
+  "icon": "desktopIcon.png",
+  "mac": {
+    "target": "dmg"
+  },
+  "linux": {
+    "target": "AppImage",
+    "category": "Utility"
+  },
+  "win": {
+    "target": ["portable", "msi"]
+  }
+}

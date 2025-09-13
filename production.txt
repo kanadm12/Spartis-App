@@ -1,0 +1,23 @@
+rm -rf dist dist-react tsconfig.tsbuildinfo node_modules/.tmp
+npm run build
+
+npm install --save-dev electron-builder --legacy-peer-deps
+
+npm run build             # Builds React and compiles TypeScript
+npm run copy:react
+
+npm run dist:linux        # Step 2 (example): Packages the app for Linux
+# or
+npm run dist:win          # for Windows
+npm run dist:mac   
+
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+
+npm install --legacy-peer-deps
+
+npm run build
+npm run transpile:electron
+npm run copy:react
+npm run dist:linux
