@@ -8,5 +8,8 @@ redis
 numpy
 SimpleITK
 scikit-image
+vtk
+pydicom
+nibabel
 # pyvista # CRITICAL: This library is not compatible with Vercel's headless serverless environment and will cause runtime errors.
 # You must refactor your pipeline to use a headless-compatible library for mesh generation.

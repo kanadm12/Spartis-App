@@ -27,7 +27,7 @@ function App() {
     formData.append("file", file)
 
     try {
-      const res = await fetch("http://localhost:8000/process-nifti/", {
+      const res = await fetch("/api/process-nifti/", {
         method: "POST",
         body: formData,
       })
@@ -35,8 +35,8 @@ function App() {
       if (!res.ok) throw new Error("Upload failed")
 
       const data = await res.json()
-      const filename = data.filename
-      const url = `http://localhost:8000/outputs/${encodeURIComponent(filename)}`
+      const filename = data.filename // This will be undefined until you implement polling
+      const url = `/api/outputs/${encodeURIComponent(filename)}`
 
       setStlFile(filename)
       setStlUrl(url)
@@ -59,7 +59,7 @@ function App() {
   const handleViewMesh = async () => {
     if (!stlFile) return
     try {
-      const res = await fetch(`http://localhost:8000/view-mesh/?filename=${encodeURIComponent(stlFile)}`)
+      const res = await fetch(`/api/view-mesh/?filename=${encodeURIComponent(stlFile)}`)
       if (!res.ok) throw new Error("Viewer failed to launch")
       alert("Mesh viewer launched from backend")
     } catch (err) {
